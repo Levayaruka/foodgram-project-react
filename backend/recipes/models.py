@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-
 
 User = get_user_model()
 
@@ -82,6 +81,14 @@ class RecipeTag(models.Model):
         on_delete=models.CASCADE
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tag', 'recipe'],
+                name='unique_recipe_tag'
+            )
+        ]
+
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
@@ -102,6 +109,14 @@ class RecipeIngredient(models.Model):
         default=1
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ingredient', 'recipe'],
+                name='unique_recipe_ingredient'
+            )
+        ]
+
     def __str__(self):
         return f'{self.ingredient.name}, {self.amount}'
 
@@ -118,6 +133,14 @@ class Favorite(models.Model):
         related_name='favoriterecipe'
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_favorite'
+            )
+        ]
+
     def __str__(self):
         return f'{self.recipe} is in favorites of {self.user}'
 
@@ -133,3 +156,10 @@ class Cart(models.Model):
         on_delete=models.CASCADE,
         related_name='recipeincart'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'], name='unique_purchase'
+            )
+        ]

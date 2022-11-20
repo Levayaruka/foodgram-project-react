@@ -1,17 +1,17 @@
 from distutils.util import strtobool
 
 import django_filters
-from rest_framework import filters
-
 from recipes.models import Favorite, Cart, Recipe
-
-CHOICES = (
-    ('0', 'False'),
-    ('1', 'True')
-)
+from rest_framework import filters
 
 
 class RecipeFilter(django_filters.FilterSet):
+    CHOICES = (
+        ('0', 'False'),
+        ('1', 'True')
+    ) 
+    #в новых версиях Джанго boolean игнорирует 1 и 0, посылаемые фронтом
+    #поэтому нужна константа и данная реализация
     author = django_filters.CharFilter(field_name='author__id')
     tags = django_filters.AllValuesMultipleFilter(field_name='tags__slug')
     is_favorited = django_filters.TypedChoiceFilter(
@@ -32,18 +32,17 @@ class RecipeFilter(django_filters.FilterSet):
     def get_is_favorited(self, queryset, name, value):
         if not value:
             return queryset
-        favorites = Favorite.objects.filter(user=self.request.user)
-        return queryset.filter(
-            pk__in=(favorite.recipe.pk for favorite in favorites)
-        )
+        favorites_pk = Favorite.objects.filter(
+            user=self.request.user).values_list('pk', flat=True)
+        return queryset.filter(favoriterecipe__in=favorites_pk)
 
     def get_is_in_shopping_cart(self, queryset, name, value):
         if not value:
             return queryset
-        carts = Cart.objects.filter(user=self.request.user)
-        return queryset.filter(
-            pk__in=(cart.recipe.pk for cart in carts)
-        )
+        carts_pk = Cart.objects.filter(
+            user=self.request.user).values_list('pk', flat=True)
+        return queryset.filter(recipeincart__in=carts_pk)
+
 
 class IngredientFilter(filters.SearchFilter):
     search_param = 'name'

@@ -1,40 +1,35 @@
 from http import HTTPStatus
 from os import path
 
+from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from django.core.exceptions import ValidationError
-from rest_framework import viewsets, permissions, mixins
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
+from rest_framework import mixins, permissions, viewsets
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .filters import RecipeFilter, IngredientFilter
-from .permissions import IsAuthorOrReadOnly
-from .pagination import PageLimitPagination
-from .serializers import (
-    CustomUserSerializer, IngredientSerializer,
-    RecipeSerializer, RecipeCreateUpdateSerializer,
-    SubscriptionSerializer,
-    TagSerializer, FavoriteSerializer,
-    ShoppingCartSerializer, RecipeShortSerializer
-)
-
+from recipes.models import (Cart, Favorite, Ingredient, Recipe,
+                            RecipeIngredient, Tag)
 from users.models import CustomUser, Subscription
-from recipes.models import (
-    Recipe, Tag, RecipeIngredient,
-    Ingredient, Cart, Favorite
-)
 
+from .filters import IngredientFilter, RecipeFilter
+from .pagination import PageLimitPagination
+from .permissions import IsAuthorOrReadOnly
+from .serializers import (CustomUserSerializer, FavoriteSerializer,
+                          IngredientSerializer, RecipeCreateUpdateSerializer,
+                          RecipeSerializer, RecipeShortSerializer,
+                          ShoppingCartSerializer, SubscriptionSerializer,
+                          TagSerializer)
 
 app_path = path.realpath(path.dirname(__file__))
 font_path = path.join(app_path, 'arial.ttf')
+
 
 class CreateDestroyViewSet(mixins.CreateModelMixin,
                            mixins.DestroyModelMixin,
@@ -59,21 +54,20 @@ class TagsViewSet(ListRetrieveViewSet):
     queryset = Tag.objects.all()
     pagination_class = None
     serializer_class = TagSerializer
-    permission_classes = [permissions.AllowAny, ]
+    permission_classes = (permissions.AllowAny, )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    permission_classes = [IsAuthorOrReadOnly, ]
-    filter_backends = [DjangoFilterBackend, ]
+    permission_classes = (IsAuthorOrReadOnly, )
+    filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
     pagination_class = PageLimitPagination
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return RecipeSerializer
-        else:
-            return RecipeCreateUpdateSerializer
+        return RecipeCreateUpdateSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -87,11 +81,11 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
 class IngredientViewSet(ListRetrieveViewSet):
     queryset = Ingredient.objects.all()
-    permission_classes = [permissions.AllowAny, ]
+    permission_classes = (permissions.AllowAny, )
     serializer_class = IngredientSerializer
-    filter_backends = [DjangoFilterBackend, IngredientFilter]
+    filter_backends = (DjangoFilterBackend, IngredientFilter)
     pagination_class = None
-    search_fields = ['^name', ]
+    search_fields = ('^name', )
 
 
 class SubscriptionViewSet(ListRetrieveViewSet):
@@ -103,7 +97,7 @@ class SubscriptionViewSet(ListRetrieveViewSet):
 
 class SubscribeViewSet(CreateDestroyViewSet):
     serializer_class = SubscriptionSerializer
-    permission_classes = [permissions.IsAuthenticated, ]
+    permission_classes = (permissions.IsAuthenticated, )
 
     def create(self, request, *args, **kwargs):
         author_id = self.kwargs.get('user_id')
@@ -114,17 +108,14 @@ class SubscribeViewSet(CreateDestroyViewSet):
                 status=HTTPStatus.BAD_REQUEST
             )
         try:
-            Subscription.objects.create(author=author, user=self.request.user)
+            subscription = Subscription.objects.create(
+                author=author,
+                user=self.request.user)
         except ValidationError:
             return Response(
                 f'Вы уже подписаны на {author.username}',
                 status=HTTPStatus.BAD_REQUEST
             )
-        subscription = get_object_or_404(
-            Subscription,
-            author=author,
-            user=self.request.user
-        )
         serializer = SubscriptionSerializer(subscription, many=False)
         return Response(data=serializer.data, status=HTTPStatus.CREATED)
 
@@ -141,8 +132,7 @@ class SubscribeViewSet(CreateDestroyViewSet):
 
 class FavoriteViewSet(CreateDestroyViewSet):
     serializer_class = FavoriteSerializer
-    permission_classes = [permissions.IsAuthenticated, ]
-
+    permission_classes = (permissions.IsAuthenticated, )
 
     def create(self, request, *args, **kwargs):
         recipe_id = self.kwargs.get('recipe_id')
@@ -163,7 +153,7 @@ class FavoriteViewSet(CreateDestroyViewSet):
 
 
 class DownloadShoppingCartViewSet(APIView):
-    permission_classes = [permissions.IsAuthenticated, ]
+    permission_classes = (permissions.IsAuthenticated, )
 
     @staticmethod
     def canvas_method(shopping_list):
@@ -210,7 +200,7 @@ class DownloadShoppingCartViewSet(APIView):
 
 class ShoppingCartViewSet(CreateDestroyViewSet):
     serializer_class = ShoppingCartSerializer
-    permission_classes = [permissions.IsAuthenticated, ]
+    permission_classes = (permissions.IsAuthenticated, )
 
     def create(self, request, *args, **kwargs):
         recipe_id = self.kwargs.get('recipe_id')

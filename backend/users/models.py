@@ -29,7 +29,7 @@ class CustomUser(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == 'admin'
+        return self.role == 'admin' and self.role == 'superuser'
 
 
 class Subscription(models.Model):
@@ -43,3 +43,9 @@ class Subscription(models.Model):
         on_delete=models.CASCADE,
         related_name='following',
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'user'], name='unique_subscription')
+        ]
