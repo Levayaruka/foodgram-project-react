@@ -4,8 +4,13 @@
 ### Запуск
 foodgram-project-react/infra/
 `docker-compose up -d --build`
+
 `docker-compose exec web python manage.py makemigrations users`
+
 `docker-compose exec web python manage.py makemigrations recipes`
+
 `docker-compose exec web python manage.py migrate`
+
 `docker-compose exec web python manage.py createsuperuser`
+
 `docker-compose exec web python manage.py collectstatic --no-input`
