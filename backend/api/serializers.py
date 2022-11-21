@@ -2,7 +2,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from recipes.models import (Cart, Favorite, Ingredient, Recipe,
-                            RecipeIngredient, RecipeTag, Tag)
+                            RecipeIngredient, Tag)
 from users.models import CustomUser, Subscription
 
 
@@ -47,17 +47,13 @@ class CustomUserSerializer(serializers.ModelSerializer):
         return (
             Subscription.objects.filter(
                 user=request.user,
+                author__id=obj.id
             ).exists()
             and request.user.is_authenticated
         )
 
     def create(self, validated_data):
-        user = CustomUser(
-            email=validated_data['email'],
-            username=validated_data['username'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
-        )
+        user = CustomUser(**validated_data)
         user.set_password(validated_data['password'])
         user.save()
         return user
@@ -136,10 +132,12 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if not request:
             return True
+        if request.user.is_anonymous or obj is None:
+            return False
         return (
             Subscription.objects.filter(
                 user=request.user,
-                author__id=obj.author.id
+                author__id=obj.id
             ).exists()
             and request.user.is_authenticated
         )
@@ -148,15 +146,19 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return Recipe.objects.filter(author=obj.author).count()
 
     def get_recipes(self, obj):
-        try:
-            recipes_limit = int(
-                self.context.get('request').query_params['recipes_limit']
-            )
-            recipes = Recipe.objects.filter(author=obj.author)[:recipes_limit]
-        except Exception:
-            recipes = Recipe.objects.filter(author=obj.author)
-        serializer = RecipeShortSerializer(recipes, many=True,)
-        return serializer.data
+        if not self.context.get('request').query_params['recipes_limit']:
+            return RecipeShortSerializer(
+                obj.recipes.all(),
+                many=True
+            ).data
+        recipes_limit = int(
+            self.context.get('request').query_params['recipes_limit']
+        )
+        recipes = Recipe.objects.filter(author=obj.author)[:recipes_limit]
+        return RecipeShortSerializer(
+            recipes,
+            many=True
+        ).data
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -240,29 +242,16 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             recipe.tags.add(tag)
 
     def create(self, validated_data):
-        name = validated_data.get('name')
-        image = validated_data.get('image')
-        text = validated_data.get('text')
-        cooking_time = validated_data.get('cooking_time')
-        author = validated_data.get('author')
-        ingredients = validated_data.pop('recipe_ingredient')
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(
-            author=author,
-            name=name,
-            image=image,
-            text=text,
-            cooking_time=cooking_time
-        )
-        return self.add_ingredients_and_tags(tags, ingredients, recipe)
+        ingredients = validated_data.pop('recipe_ingredient')
+        recipe = Recipe.objects.create(**validated_data)
+        self.add_tags(tags, recipe)
+        self.add_ingredients(ingredients, recipe)
+        return recipe
 
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop('recipe_ingredient')
-        tags = validated_data.pop('tags')
-        RecipeTag.objects.filter(recipe=instance).delete()
+        instance.tags.clear()
         RecipeIngredient.objects.filter(recipe=instance).delete()
-        instance = self.add_ingredients_and_tags(
-            tags, ingredients, instance)
-        super().update(instance, validated_data)
-        instance.save()
-        return instance
+        self.add_tags(validated_data.pop('tags'), instance)
+        self.add_ingredients(validated_data.pop('recipe_ingredient'), instance)
+        return super().update(instance, validated_data)

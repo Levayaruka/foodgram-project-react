@@ -107,15 +107,18 @@ class SubscribeViewSet(CreateDestroyViewSet):
                 'Вы не можете подписаться на себя',
                 status=HTTPStatus.BAD_REQUEST
             )
-        try:
-            subscription = Subscription.objects.create(
-                author=author,
-                user=self.request.user)
-        except ValidationError:
+        if Subscription.objects.filter(
+                author=author, user=self.request.user).exists():
             return Response(
-                f'Вы уже подписаны на {author.username}',
+                'Вы уже подписаны на данного автора',
                 status=HTTPStatus.BAD_REQUEST
             )
+        Subscription.objects.create(author=author, user=self.request.user)
+        subscription = get_object_or_404(
+            Subscription,
+            author=author,
+            user=self.request.user
+        )
         serializer = SubscriptionSerializer(subscription, many=False)
         return Response(data=serializer.data, status=HTTPStatus.CREATED)
 
