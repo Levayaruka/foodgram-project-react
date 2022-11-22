@@ -161,6 +161,12 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         ).data
 
 
+class SubscriptionShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = ('user', 'author')
+
+
 class ShoppingCartSerializer(serializers.ModelSerializer):
 
     class Meta:
