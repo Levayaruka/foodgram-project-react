@@ -1,4 +1,4 @@
-https://github.com/Levayaruka/foodgram-project-react/actions/workflows/main.yml/badge.svg
+![workflow status](https://github.com/Levayaruka/foodgram-project-react/actions/workflows/main.yml/badge.svg)
 
 # foodgram
 ### Описание
