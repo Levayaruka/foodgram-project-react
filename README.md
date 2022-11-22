@@ -10,6 +10,7 @@ admin@mail.ru:password
 
 ### Запуск
 Клонировать репозиторий
+
 `git clone https://github.com/Levayaruka/foodgram-project-react.git`
 
 Перейти в каталог foodgram-project-react/infra/ и создать .env и заполнить по примеру
