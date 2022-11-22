@@ -114,13 +114,7 @@ class SubscribeViewSet(CreateDestroyViewSet):
                 status=HTTPStatus.BAD_REQUEST
             )
         Subscription.objects.create(author=author, user=self.request.user)
-        subscription = get_object_or_404(
-            Subscription,
-            author=author,
-            user=self.request.user
-        )
-        serializer = SubscriptionSerializer(subscription, many=False)
-        return Response(status=HTTPStatus.CREATED, data=serializer.data)
+        return Response(status=HTTPStatus.CREATED)
 
     def delete(self, request, *args, **kwargs):
         author_id = self.kwargs.get('user_id')
