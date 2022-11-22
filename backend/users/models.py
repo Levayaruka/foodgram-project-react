@@ -5,7 +5,7 @@ from django.db import models
 class CustomUser(AbstractUser):
     ADMIN = 'admin'
     USER = 'user'
-    
+
     CHOICES = (
         (USER, 'user'),
         (ADMIN, 'admin'),
