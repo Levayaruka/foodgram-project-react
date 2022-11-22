@@ -2,10 +2,11 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-class CustomUser(AbstractUser):
-    ADMIN = 'admin'
-    USER = 'user'
+ADMIN = 'admin'
+USER = 'user'
 
+
+class CustomUser(AbstractUser):
     CHOICES = (
         (USER, 'user'),
         (ADMIN, 'admin'),
@@ -40,16 +41,12 @@ class CustomUser(AbstractUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ('username', )
-
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
     @property
     def is_admin(self):
-        if self.is_superuser:
-            return self.role == self.ADMIN
+        return self.role == self.ADMIN or self.is_superuser
 
 
 class Subscription(models.Model):

@@ -120,7 +120,7 @@ class SubscribeViewSet(CreateDestroyViewSet):
             user=self.request.user
         )
         serializer = SubscriptionSerializer(subscription, many=False)
-        return Response(data=serializer.data, status=HTTPStatus.CREATED)
+        return Response(status=HTTPStatus.CREATED, data=serializer.data)
 
     def delete(self, request, *args, **kwargs):
         author_id = self.kwargs.get('user_id')
