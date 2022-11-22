@@ -40,11 +40,14 @@ class CustomUser(AbstractUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
-    USERNAME_FIELD = 'username'
-    # согласно документации django, необходимо использовать
-    # данную константу как обозначение поля уникального
-    # идентификатора в кастомной модели пользователя
-    # пишется после перечисления полей
+    USERNAME_FIELD = 'email'
+    # -согласно документации django, необходимо использовать
+    # константу 'USERNAME_FIELD' как обозначение поля уникального
+    # идентификатора в кастомной модели пользователя.
+    # с фронта для аутентификации запрашивается именно email,
+    # в документации описывается, что его можно использовать
+    # https://docs.djangoproject.com/en/4.1/topics/auth/customizing/#django.contrib.auth.models.CustomUser.USERNAME_FIELD
+    # -пишется после перечисления полей
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
