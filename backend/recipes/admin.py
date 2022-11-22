@@ -37,7 +37,7 @@ class IngredientAdmin(admin.ModelAdmin):
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'get_favorite_count')
     list_filter = ('tags__name', 'author', 'name')
-    search_fields = ('name', 'author', 'tags__name')
+    search_fields = ('name', 'author__username', 'tags__name')
     inlines = (RecipeIngredientInLine, FavoriteInLine, RecipeTagInLine)
     ordering = ('-id', )
 
