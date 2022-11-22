@@ -40,6 +40,12 @@ class CustomUser(AbstractUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
+    USERNAME_FIELD = 'username'
+    # согласно документации django, необходимо использовать
+    # данную константу как обозначение поля уникального
+    # идентификатора в кастомной модели пользователя
+    # пишется после перечисления полей
+
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
