@@ -2,11 +2,10 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-ADMIN = 'admin'
-USER = 'user'
-
-
 class CustomUser(AbstractUser):
+    ADMIN = 'admin'
+    USER = 'user'
+    
     CHOICES = (
         (USER, 'user'),
         (ADMIN, 'admin'),
