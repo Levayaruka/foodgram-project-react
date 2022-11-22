@@ -41,13 +41,16 @@ class CustomUser(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
     USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ('username', 'first_name', 'last_name', 'password')
+    # -пишется после перечисления полей
     # -согласно документации django, необходимо использовать
     # константу 'USERNAME_FIELD' как обозначение поля уникального
     # идентификатора в кастомной модели пользователя.
     # с фронта для аутентификации запрашивается именно email,
     # в документации описывается, что его можно использовать
     # https://docs.djangoproject.com/en/4.1/topics/auth/customizing/#django.contrib.auth.models.CustomUser.USERNAME_FIELD
-    # -пишется после перечисления полей
+    # константа 'REQUIRED_FIELDS' необходима для определения обязательных полей
+    # при создании админа через команду createsuperuser
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
