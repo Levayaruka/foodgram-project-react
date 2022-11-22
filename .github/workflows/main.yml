@@ -59,6 +59,8 @@ jobs:
           sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram:latest
           sudo docker stop $(sudo docker ps -a -q)
           sudo docker-compose up -d
+          sudo docker-compose run web python manage.py makemigrations users
+          sudo docker-compose run web python manage.py makemigrations recipes
           sudo docker-compose run web python manage.py migrate
           sudo docker-compose run web python manage.py collectstatic --no-input
 
