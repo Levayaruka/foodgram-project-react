@@ -114,8 +114,9 @@ class SubscribeViewSet(CreateDestroyViewSet):
                 status=HTTPStatus.BAD_REQUEST
             )
         obj = Subscription.objects.create(
-                user=request.user, author=author
-            )
+            user=request.user,
+            author=author
+        )
         serializer = SubscriptionShortSerializer(obj, many=False)
         return Response(data=serializer.data, status=HTTPStatus.CREATED)
 
