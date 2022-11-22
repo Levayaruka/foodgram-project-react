@@ -25,7 +25,7 @@ from .serializers import (CustomUserSerializer, FavoriteSerializer,
                           IngredientSerializer, RecipeCreateUpdateSerializer,
                           RecipeSerializer, RecipeShortSerializer,
                           ShoppingCartSerializer, SubscriptionSerializer,
-                          SubscriptionShortSerializer, TagSerializer)
+                          TagSerializer)
 
 app_path = path.realpath(path.dirname(__file__))
 font_path = path.join(app_path, 'arial.ttf')
@@ -113,12 +113,8 @@ class SubscribeViewSet(CreateDestroyViewSet):
                 'Вы уже подписаны на данного автора',
                 status=HTTPStatus.BAD_REQUEST
             )
-        obj = Subscription.objects.create(
-            user=request.user,
-            author=author
-        )
-        serializer = SubscriptionShortSerializer(obj, many=False)
-        return Response(data=serializer.data, status=HTTPStatus.CREATED)
+        Subscription.objects.create(author=author, user=self.request.user)
+        return Response(status=HTTPStatus.CREATED)
 
     def delete(self, request, *args, **kwargs):
         author_id = self.kwargs.get('user_id')
